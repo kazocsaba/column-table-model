@@ -1,0 +1,163 @@
+<!doctype html>
+<html>
+  <head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="chrome=1">
+    <title>Column Table Model by kazocsaba</title>
+    <link rel="stylesheet" href="stylesheets/styles.css">
+    <link rel="stylesheet" href="stylesheets/pygment_trac.css">
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.7.1/jquery.min.js"></script>
+    <script src="javascripts/respond.js"></script>
+    <!--[if lt IE 9]>
+      <script src="//html5shiv.googlecode.com/svn/trunk/html5.js"></script>
+    <![endif]-->
+    <!--[if lt IE 8]>
+    <link rel="stylesheet" href="stylesheets/ie.css">
+    <![endif]-->
+    <meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no">
+
+  </head>
+  <body>
+      <div id="header">
+        <nav>
+          <li class="fork"><a href="https://github.com/kazocsaba/column-table-model">View On GitHub</a></li>
+          <li class="downloads"><a href="https://github.com/kazocsaba/column-table-model/zipball/master">ZIP</a></li>
+          <li class="downloads"><a href="https://github.com/kazocsaba/column-table-model/tarball/master">TAR</a></li>
+          <li class="title">DOWNLOADS</li>
+        </nav>
+      </div><!-- end header -->
+
+    <div class="wrapper">
+
+      <section>
+        <div id="title">
+          <h1>Column Table Model</h1>
+          <p>A column-wise defined table model.</p>
+          <hr>
+          <span class="credits left">Project maintained by <a href="https://github.com/kazocsaba">kazocsaba</a></span>
+          <span class="credits right">Hosted on GitHub Pages &mdash; Theme by <a href="http://twitter.com/#!/michigangraham">mattgraham</a></span>
+        </div>
+
+        <h1>Column Table Model</h1>
+
+<h2>Introduction</h2>
+
+<p><code>ColumnTableModel</code> is an extension of <code>AbstractTableModel</code> that reorganizes the data and functions that conceptually belong to a column.</p>
+
+<p>Using <code>AbstractTableModel</code>, a simple table can be implemented like this:</p>
+
+<pre><code>public class StringsTableModel extends AbstractTableModel {
+    private final List&lt;String&gt; data=new ArrayList&lt;&gt;();
+
+    @Override
+    public int getColumnCount() {
+        return 3;
+    }
+    @Override
+    public Object getColumnName(int col) {
+        switch (col) {
+            case 0: return "Index";
+            case 1: return "String";
+            case 2: return "Hash";
+            default: throw new IndexOutOfBoundsException();
+        }
+    }
+    @Override
+    public Object getValueAt(int row, int col) {
+        switch (col) {
+            case 0: return row+1;
+            case 1: return data.get(row);
+            case 2: return data.get(row).hashCode();
+            default: throw new IndexOutOfBoundsException();
+        }
+    }
+    @Override
+    public Object getColumnClass(int col) {
+        switch (col) {
+            case 0: return Integer.class;
+            case 1: return String.class;
+            case 2: return Integer.class;
+            default: throw new IndexOutOfBoundsException();
+        }
+    }
+    @Override
+    public boolean isCellEditable(int row, int col) {
+        return col==1;
+    }
+    @Override
+    public void setValueAt(Object value, int row, int col) {
+        if (col==1) {
+            data.set(row, (String)value);
+            fireTableRowsUpdated(row, row);
+        }
+    }
+}
+</code></pre>
+
+<p>Especially when the model contains more columns, this code becomes hard to maintain. The columns are identified by their indices, and data belonging to a particular column is spread over several functions. For example, changing the order of the columns requires rewriting a lot of indices in the model functions; it is easy to make a mistake.</p>
+
+<h2>Example</h2>
+
+<p><code>ColumnTableModel</code> groups the code belonging to each column into a <code>Column</code> class. The following example class implements the same model as the above, but using <code>ColumnTableModel</code>:</p>
+
+<pre><code>public class StringsTableModel extends ColumnTableModel {
+    private final List&lt;String&gt; data=new ArrayList&lt;&gt;();
+
+    public final Column indexColumn=new Column("Index", Integer.class) {
+        @Override
+        public Object get(int row) {
+            return row+1;
+        }
+    };
+    public final Column stringColumn=new Column("Value", String.class, true) {
+        @Override
+        public Object get(int row) {
+            return data.get(row);
+        }
+        @Override
+        public void set(Object value, int row) {
+            data.set(row, (String)value);
+            fireTableRowsUpdated(row, row);
+        }
+    };
+    public final Column hashColumn=new Column("Hash", Integer.class) {
+        @Override
+        public Object get(int row) {
+            return data.get(row).hashCode();
+        }
+    };
+
+    public StringsTableModel() {
+        addColumns(indexColumn, stringColumn, hashColumn);
+    }
+
+    @Override
+    public int getRowCount() {
+        return data.size();
+    }
+}
+</code></pre>
+
+<h2>Using</h2>
+
+<p>The library resides in the central Maven repository with
+group ID <code>hu.kazocsaba</code> and artifact ID <code>column-table-model</code>. If
+you use a project management system which can fetch dependencies
+from there, you can just add the library as a dependency. E.g.
+in Maven:</p>
+
+<pre><code>&lt;dependency&gt;
+    &lt;groupId&gt;hu.kazocsaba&lt;/groupId&gt;
+    &lt;artifactId&gt;column-table-model&lt;/artifactId&gt;
+    &lt;version&gt;1.0.0&lt;/version&gt;
+&lt;/dependency&gt;
+</code></pre>
+
+<p>You can also browse the <a href="http://kazocsaba.github.com/column-table-model/apidocs/index.html">online javadoc</a>.</p>
+      </section>
+
+    </div>
+    <!--[if !IE]><script>fixScale(document);</script><![endif]-->
+    
+  </body>
+</html>
